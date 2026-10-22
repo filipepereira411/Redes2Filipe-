@@ -3,81 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redes2Filipe - Monitorização Remota</title>
-    <!-- Importa o cliente do Socket.io disponibilizado pelo servidor Node.js -->
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Redes2Filipe - Consulta de Rede</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; margin: 20px; }
-        h1 { text-align: center; color: #00adb5; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 20px; }
-        .pc-card { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: transform 0.2s; }
-        .pc-card:hover { transform: translateY(-3px); border-color: #00adb5; }
-        .screen-preview { width: 100%; height: 180px; background: #000; border: 2px solid #393e46; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; overflow: hidden; }
-        .screen-preview img { width: 100%; height: 100%; object-fit: contain; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 5px; width: 45%; transition: background 0.2s; }
-        .btn-on { background: #28a745; color: white; }
-        .btn-on:hover { background: #218838; }
-        .btn-off { background: #dc3545; color: white; }
-        .btn-off:hover { background: #c82333; }
-        .status { font-size: 0.9em; margin-bottom: 12px; color: #eeeeee; font-weight: 500; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; margin: 20px; }
+        h1, h2 { text-align: center; color: #00adb5; }
+        .container { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; max-width: 500px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        input[type="text"] { padding: 10px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; font-size: 16px; }
+        button { padding: 12px; background: #00adb5; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:hover { background: #008c92; }
+        .info-box { background: #2d2d2d; padding: 15px; border-radius: 4px; border-left: 4px solid #ffbc00; font-size: 0.9em; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <h1>Redes2Filipe - Gestão de Ecrãs Remotos</h1>
-    
-    <div class="grid-container">
-        <!-- Posto 01 -->
-        <div class="pc-card" id="posto-01">
-            <h3>Posto 01 (Janela Principal)</h3>
-            <div class="status">Estado: <span id="status-01" style="color: #aaa;">A detetar...</span></div>
-            <div class="screen-preview">
-                <!-- A imagem será injetada em Base64 pelo JavaScript em tempo real -->
-                <img id="img-01" src="https://placeholder.com" alt="Ecrã Remoto">
-            </div>
-            <button class="btn btn-on" onclick="enviarComando('00:1A:3F:11:AC:01', 'ligar')">Ligar</button>
-            <button class="btn btn-off" onclick="enviarComando('posto-01', 'desligar')">Desligar</button>
-        </div>
+    <h1>Redes2Filipe</h1>
 
-        <!-- Posto 02 -->
-        <div class="pc-card" id="posto-02">
-            <h3>Posto 02 (Laboratório)</h3>
-            <div class="status">Estado: <span id="status-02" style="color: #aaa;">A detetar...</span></div>
-            <div class="screen-preview">
-                <img id="img-02" src="https://placeholder.com" alt="Ecrã Remoto">
+    <!-- FORMULÁRIO SEM JAVASCRIPT -->
+    <!-- Envia o IP para uma ferramenta pública de sub-redes (IP-Address) -->
+    <div class="container">
+        <h2>Identificar Rede Local</h2>
+        
+        <form action="https://ip-address.com" method="GET" target="_blank">
+            <div class="form-group">
+                <label for="cidr">Introduza o IP com o CIDR (ex: 192.168.1.50/24):</label>
+                <input type="text" id="cidr" name="cidr" value="192.168.1.50/24" required placeholder="192.168.1.50/24">
             </div>
-            <button class="btn btn-on" onclick="enviarComando('00:1A:3F:11:AC:02', 'ligar')">Ligar</button>
-            <button class="btn btn-off" onclick="enviarComando('posto-02', 'desligar')">Desligar</button>
+            
+            <button type="submit">Calcular Rede Externa/Local</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="info-box">
+            <strong>Nota de Redes:</strong> Sem JavaScript (Scripts), o HTML não consegue fazer cálculos matemáticos binários de máscaras de rede, nem comunicar por WebSockets com o ecrã dos computadores. Este formulário envia os dados diretamente para um servidor externo que processa e mostra os detalhes da rede noutra página.
         </div>
     </div>
 
-    <script>
-        // Estabelece ligação em tempo real com o server.js
-        const socket = io();
-
-        // Escuta as atualizações de ecrã enviadas pelo servidor
-        socket.on('atualizar-painel', (dados) => {
-            // "dados" deve conter o id do posto e a imagem em formato base64
-            const imgElement = document.getElementById(`img-${dados.postoId}`);
-            const statusElement = document.getElementById(`status-${dados.postoId}`);
-            
-            if (imgElement && dados.imagemBase64) {
-                imgElement.src = 'data:image/jpeg;base64,' + dados.imagemBase64;
-                statusElement.innerText = 'Ligado';
-                statusElement.style.color = '#28a745';
-            }
-        });
-
-        // Função para interagir com o server.js ao carregar nos botões
-        function enviarComando(identificador, acao) {
-            if (acao === 'ligar') {
-                console.log(`A enviar ordem para ligar o MAC: ${identificador}`);
-                socket.emit('comando-ligar', identificador); // Passa o MAC address para o WoL
-            } else if (acao === 'desligar') {
-                console.log(`A enviar ordem para desligar o ID: ${identificador}`);
-                socket.emit('comando-desligar', identificador); // Passa o ID para o agente desligar
-            }
-        }
-    </script>
 </body>
 </html>
