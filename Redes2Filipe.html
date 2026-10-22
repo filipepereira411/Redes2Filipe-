@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redes2Filipe - Consulta de Rede</title>
+    <title>Redes2Filipe - Analisador LAN</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; margin: 20px; }
-        h1, h2 { text-align: center; color: #00adb5; }
-        .container { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; max-width: 500px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        input[type="text"] { padding: 10px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; font-size: 16px; }
-        button { padding: 12px; background: #00adb5; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 35px; width: 340px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        h1 { color: #00adb5; margin-top: 0; font-size: 26px; font-weight: 600; letter-spacing: 0.5px; }
+        p { color: #888; font-size: 13px; margin-bottom: 25px; }
+        input[type="text"] { width: 100%; padding: 14px; background: #2d2d2d; border: 2px solid #3f3e46; color: #fff; border-radius: 6px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; text-align: center; font-weight: bold; }
+        input[type="text"]:focus { border-color: #00adb5; outline: none; }
+        button { width: 100%; padding: 14px; background: #00adb5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; transition: background 0.2s; }
         button:hover { background: #008c92; }
-        .info-box { background: #2d2d2d; padding: 15px; border-radius: 4px; border-left: 4px solid #ffbc00; font-size: 0.9em; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <h1>Redes2Filipe</h1>
-
-    <!-- FORMULÁRIO SEM JAVASCRIPT -->
-    <!-- Envia o IP para uma ferramenta pública de sub-redes (IP-Address) -->
-    <div class="container">
-        <h2>Identificar Rede Local</h2>
+    <div class="box">
+        <h1>Redes2Filipe</h1>
+        <p>Análise instantânea de redes 192.168.X.X</p>
         
-        <form action="https://ip-address.com" method="GET" target="_blank">
-            <div class="form-group">
-                <label for="cidr">Introduza o IP com o CIDR (ex: 192.168.1.50/24):</label>
-                <input type="text" id="cidr" name="cidr" value="192.168.1.50/24" required placeholder="192.168.1.50/24">
-            </div>
+        <!-- O formulário envia o IP diretamente para o calculador com a máscara /24 embutida -->
+        <form action="https://jodies.de/ipcalc" method="GET" target="_blank">
             
-            <button type="submit">Calcular Rede Externa/Local</button>
-        </form>
-    </div>
+            <!-- Campo de entrada limpo para o IP -->
+            <input 
+                type="text" 
+                name="host" 
+                value="192.168.1.1" 
+                placeholder="Ex: 192.168.0.1" 
+                required 
+                pattern="^192\.168\.[0-9]{1,3}\.[0-9]{1,3}$"
+                title="Insira um IP válido que comece por 192.168.X.X">
+            
+            <!-- Input oculto que força o cálculo para a máscara /24 (255.255.255.0) -->
+            <input type="hidden" name="mask1" value="24">
 
-    <div class="container">
-        <div class="info-box">
-            <strong>Nota de Redes:</strong> Sem JavaScript (Scripts), o HTML não consegue fazer cálculos matemáticos binários de máscaras de rede, nem comunicar por WebSockets com o ecrã dos computadores. Este formulário envia os dados diretamente para um servidor externo que processa e mostra os detalhes da rede noutra página.
-        </div>
+            <button type="submit">Revelar Rede Local</button>
+        </form>
     </div>
 
 </body>
