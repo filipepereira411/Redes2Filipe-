@@ -3,43 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redes2Filipe - Analisador LAN</title>
+    <title>Redes2Filipe - Gestor LAN Completo</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 35px; width: 340px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
-        h1 { color: #00adb5; margin-top: 0; font-size: 26px; font-weight: 600; letter-spacing: 0.5px; }
-        p { color: #888; font-size: 13px; margin-bottom: 25px; }
-        input[type="text"] { width: 100%; padding: 14px; background: #2d2d2d; border: 2px solid #3f3e46; color: #fff; border-radius: 6px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; text-align: center; font-weight: bold; }
-        input[type="text"]:focus { border-color: #00adb5; outline: none; }
-        button { width: 100%; padding: 14px; background: #00adb5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; transition: background 0.2s; }
-        button:hover { background: #008c92; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .box { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 35px; width: 500px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); margin-bottom: 25px; text-align: center; }
+        h1 { color: #00adb5; margin-top: 0; font-size: 28px; font-weight: 600; }
+        p { color: #888; font-size: 14px; margin-bottom: 20px; }
+        
+        /* Formulários e Inputs */
+        .form-add { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; text-align: left; }
+        label { color: #aaa; font-size: 13px; font-weight: 500; }
+        input[type="text"], select { width: 100%; padding: 12px; background: #2d2d2d; border: 2px solid #3f3e46; color: #fff; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+        input[type="text"]:focus, select:focus { border-color: #00adb5; outline: none; }
+        
+        /* Botões */
+        .btn { display: inline-block; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; text-decoration: none; width: 100%; box-sizing: border-box; transition: background 0.2s; }
+        .btn-add { background: #00adb5; color: #fff; }
+        .btn-add:hover { background: #008c92; }
+        .btn-del { background: #dc3545; color: #fff; padding: 6px 12px; font-size: 12px; border-radius: 4px; text-decoration: none; width: auto; }
+        .btn-del:hover { background: #bd2130; }
+        .btn-back { background: #444; color: #fff; margin-top: 15px; }
+        .btn-back:hover { background: #555; }
+        
+        /* Tabelas de Rede */
+        .lan-table { width: 100%; max-width: 650px; border-collapse: collapse; background: #1e1e1e; border-radius: 8px; overflow: hidden; border: 1px solid #333; margin-top: 15px; }
+        .lan-table th, .lan-table td { padding: 14px; text-align: left; border-bottom: 1px solid #333; }
+        .lan-table th { background: #25262b; color: #00adb5; font-weight: 600; }
+        
+        /* Distintivos (Badges) */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-pc { background: #007bff; color: #fff; }
+        .badge-peri { background: #ffc107; color: #000; }
+        .alert { background: #28a745; color: white; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; }
+
+        /* MECANISMO DE ALTERNÂNCIA DE PÁGINAS SEM JS */
+        /* Esconde todos os cenários por defeito */
+        #cenario-base, #cenario-adicionado, #cenario-removido { display: none; width: 100%; max-width: 650px; flex-direction: column; align-items: center; }
+        
+        /* Mostra o cenário correto com base na âncora do URL (#) */
+        #cenario-adicionado:target { display: flex; }
+        #cenario-removido:target { display: flex; }
+        
+        /* Se não houver âncora ou se for #cenario-base, mostra a lista inicial */
+        #cenario-base:target { display: flex; }
+        body:not(:has(:target)) #cenario-base { display: flex; }
     </style>
 </head>
 <body>
 
+    <!-- CAIXA DE CONTROLO FIXA NO TOPO -->
     <div class="box">
         <h1>Redes2Filipe</h1>
-        <p>Análise instantânea de redes 192.168.X.X</p>
-        
-        <!-- O formulário envia o IP diretamente para o calculador com a máscara /24 embutida -->
-        <form action="https://jodies.de/ipcalc" method="GET" target="_blank">
-            
-            <!-- Campo de entrada limpo para o IP -->
-            <input 
-                type="text" 
-                name="host" 
-                value="192.168.1.1" 
-                placeholder="Ex: 192.168.0.1" 
-                required 
-                pattern="^192\.168\.[0-9]{1,3}\.[0-9]{1,3}$"
-                title="Insira um IP válido que comece por 192.168.X.X">
-            
-            <!-- Input oculto que força o cálculo para a máscara /24 (255.255.255.0) -->
-            <input type="hidden" name="mask1" value="24">
+        <p>Painel de Simulação Local IP (192.168.X.X)</p>
+    </div>
 
-            <button type="submit">Revelar Rede Local</button>
-        </form>
+    <!-- ========================================================== -->
+    <!-- ESTADO 1: LISTA BASE (Cenário Inicial) -->
+    <!-- ========================================================== -->
+    <div id="cenario-base">
+        <div class="box" style="margin-bottom: 30px;">
+            <p style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #00adb5;">Mapear Novo Equipamento:</p>
+            <!-- O formulário aponta diretamente para a âncora da página adicionada -->
+            <form action="#cenario-adicionado" method="GET" class="form-add">
+                <input type="text" placeholder="Nome (Ex: Impressora-Contabilidade)" required>
+                <input type="text" value="192.168.1.201" placeholder="IP (Ex: 192.168.1.201)" required pattern="^192\.168\.[0-9]{1,3}\.[0-9]{1,3}$">
+                <select>
+                    <option value="periferico">Periférico / Impressora / NAS</option>
+                    <option value="pc">Computador / Estação</option>
+                </select>
+                <button type="submit" class="btn btn-add">+ Inserir na Rede Local</button>
+            </form>
+        </div>
+
+        <h3 style="color: #00adb5; align-self: flex-start; margin-bottom: 5px;">Dispositivos Online na Sub-rede:</h3>
+        <table class="lan-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nome do Periférico/PC</th>
+                    <th>IP Associado</th>
+                    <th>Gestão</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-pc">PC</span></td>
+                    <td><strong>PC-Administracao</strong></td>
+                    <td><code style="color: #00adb5; font-size: 14px;">192.168.1.50</code></td>
+                    <!-- O botão de remover salta para o cenário onde este PC desaparece -->
+                    <td><a href="#cenario-removido" class="btn btn-del">Remover</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- ESTADO 2: MAPA COM NOVO DISPOSITIVO ADICIONADO -->
+    <!-- ========================================================== -->
+    <div id="cenario-adicionado">
+        <div class="box">
+            <div class="alert">✓ Periférico registado no IP com sucesso!</div>
+            <a href="#cenario-base" class="btn btn-back">← Voltar ao Gestor Principal</a>
+        </div>
+
+        <h3 style="color: #00adb5; align-self: flex-start; margin-bottom: 5px;">Dispositivos Online na Sub-rede:</h3>
+        <table class="lan-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nome do Periférico/PC</th>
+                    <th>IP Associado</th>
+                    <th>Gestão</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-pc">PC</span></td>
+                    <td><strong>PC-Administracao</strong></td>
+                    <td><code style="color: #00adb5; font-size: 14px;">192.168.1.50</code></td>
+                    <td><a href="#cenario-base" class="btn btn-back" style="margin:0; padding:6px 12px; font-size:12px;">Bloqueado</a></td>
+                </tr>
+                <!-- NOVA LINHA ADICIONADA AUTOMATICAMENTE NESTE CENÁRIO -->
+                <tr style="background: rgba(40, 167, 69, 0.08); border-left: 4px solid #28a745;">
+                    <td><span class="badge badge-peri">PERIFÉRICO</span></td>
+                    <td><strong>Impressora-Contabilidade</strong></td>
+                    <td><code style="color: #00adb5; font-size: 14px;">192.168.1.201</code></td>
+                    <td><a href="#cenario-base" class="btn btn-back" style="margin:0; padding:6px 12px; font-size:12px;">Bloqueado</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- ESTADO 3: MAPA APÓS REMOVER DISPOSITIVO -->
+    <!-- ========================================================== -->
+    <div id="cenario-removido">
+        <div class="box">
+            <div class="alert" style="background: #dc3545;">⚠ Dispositivo removido da tabela local.</div>
+            <a href="#cenario-base" class="btn btn-back">← Repor Tabela Completa</a>
+        </div>
+
+        <h3 style="color: #00adb5; align-self: flex-start; margin-bottom: 5px;">Dispositivos Online na Sub-rede:</h3>
+        <table class="lan-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nome do Periférico/PC</th>
+                    <th>IP Associado</th>
+                    <th>Gestão</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- TABELA APRESENTA-SE VAZIA SIMULANDO A LIMPEZA DA REDE -->
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #666; padding: 30px 0;">
+                        Nenhum periférico ativo mapeado nesta gama de IP.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
 </body>
-</html>
+    </html>
+    
